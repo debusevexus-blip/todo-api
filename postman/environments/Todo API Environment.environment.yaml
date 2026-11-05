@@ -1,0 +1,12 @@
+name: Todo API Environment
+values:
+  - key: baseUrl
+    value: ''
+  - key: token
+    value: ''
+  - key: apikey
+    value: ''
+  - key: todoold
+    value: ''
+  - key: categoryold
+    value: ''
