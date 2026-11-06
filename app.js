@@ -174,7 +174,7 @@ app.post("/register", registerValidator, async (req, res, next) => {
         });
 
         if (existingUser) {
-            return res.status(409).json({
+            return res.status(422).json({
                 success: false,
                 message: "Email sudah terdaftar"
             });
