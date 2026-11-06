@@ -1,9 +1,17 @@
 const Category = require("../models/Category");
 
 // CREATE CATEGORY
+// CREATE CATEGORY
 const createCategory = async (req, res, next) => {
     try {
-        const category = await Category.create;
+        const { name, description } = req.body;
+
+        const category = await Category.create({
+            name,
+            description,
+            user: req.user._id
+        });
+
         res.status(201).json({
             success: true,
             message: "Category berhasil dibuat",
