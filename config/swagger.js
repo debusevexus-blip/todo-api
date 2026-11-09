@@ -20,13 +20,9 @@ const options = {
         servers: [
         
           {
-        url: "https://todo-api-topaz-kappa.vercel.app",
-        description: "Production Server"
+        url: '/',
+        description: "Default"
     },
-            {
-                url: "http://localhost:3000",
-                description: "Local Server"
-            }
         ],
 
         components: {
@@ -40,7 +36,7 @@ const options = {
         }
     },
 
-    apis: [routePath]
+    apis: ['./ruotes/*.js', './ruotes/*.js'],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
