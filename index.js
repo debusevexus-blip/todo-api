@@ -1,19 +1,24 @@
-// Mengambil konfigurasi dotenv
 require("dotenv").config();
 
-// Mengambil aplikasi dari app.js
 const app = require("./app");
-
-// Mengambil koneksi database
 const connectDB = require("./config/db");
 
-// Menentukan port server
 const PORT = process.env.PORT || 3000;
 
-// Menghubungkan MongoDB
-connectDB();
+// Handler untuk Vercel
+const handler = async (req, res) => {
+    await connectDB();
+    return app(req, res);
+};
 
-// Menjalankan server
-app.listen(PORT, () => {
-    console.log(`Server berjalan di port ${PORT}`);
-});
+// Menjalankan secara lokal
+if (require.main === module) {
+    connectDB().then(() => {
+        app.listen(PORT, () => {
+            console.log(`Server berjalan di port ${PORT}`);
+        });
+    });
+}
+
+// Export untuk Vercel
+module.exports = handler;
