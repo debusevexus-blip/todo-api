@@ -327,11 +327,6 @@ const swaggerOptions = {
   ]
 };
 
-app.use(
-    "/api-docs",
-    swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec, swaggerOptions)
-);
 // ==========================================
 // NOT FOUND DAN ERROR HANDLER
 // ==========================================
