@@ -26,7 +26,7 @@ router.get("/", getCategories);
 router.get("/:id", categoryIdValidator, getCategoryById);
 
 // UPDATE
-router.patch("/:id", categoryIdValidator, categoryValidator, updateCategory);
+router.put("/:id", categoryIdValidator, categoryValidator, updateCategory);
 
 // DELETE
 router.delete("/:id", categoryIdValidator, deleteCategory);
