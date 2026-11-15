@@ -15,10 +15,12 @@ const {
 // GET /todos
 // Filtering, Search, Sorting, Pagination
 // ==========================================
+
 /**
  * @swagger
  * /todos:
  *   get:
+ *     operationId: getAllTodos
  *     summary: Mengambil seluruh Todo pengguna
  *     description: Menampilkan daftar Todo dengan filtering, pencarian, sorting, dan pagination.
  *     tags: [Todo]
@@ -68,6 +70,7 @@ const {
  *       400:
  *         description: Parameter filter tidak valid
  */
+
 router.get("/", protect, async (req, res, next) => {
     try {
         // 1. FILTERING
@@ -101,7 +104,6 @@ router.get("/", protect, async (req, res, next) => {
 
         // 2. SEARCH
         if (req.query.search) {
-            // Escape karakter khusus agar diperlakukan sebagai teks biasa
             const search = req.query.search.replace(
                 /[.*+?^${}()|[\]\\]/g,
                 "\\$&"
@@ -160,19 +162,23 @@ router.get("/", protect, async (req, res, next) => {
             },
             data: todos
         });
+
     } catch (error) {
         next(error);
     }
 });
 
-// ====================================
+
+// ==========================================
 // GET /todos/:id
 // Mengambil satu Todo milik pengguna
 // ==========================================
+
 /**
  * @swagger
  * /todos/{id}:
  *   get:
+ *     operationId: getTodoById
  *     summary: Mengambil Todo berdasarkan ID
  *     tags: [Todo]
  *     security:
@@ -194,6 +200,7 @@ router.get("/", protect, async (req, res, next) => {
  *       404:
  *         description: Todo tidak ditemukan
  */
+
 router.get("/:id", protect, todoIdValidator, async (req, res, next) => {
     try {
         const todo = await Todo.findOne({
@@ -214,19 +221,23 @@ router.get("/:id", protect, todoIdValidator, async (req, res, next) => {
             success: true,
             data: todo
         });
+
     } catch (error) {
         next(error);
     }
 });
 
+
 // ==========================================
 // POST /todos
 // Membuat Todo baru
 // ==========================================
+
 /**
  * @swagger
  * /todos:
  *   post:
+ *     operationId: createTodo
  *     summary: Membuat Todo baru
  *     tags: [Todo]
  *     security:
@@ -261,6 +272,7 @@ router.get("/:id", protect, todoIdValidator, async (req, res, next) => {
  *       401:
  *         description: Token tidak valid
  */
+
 router.post(
     "/",
     protect,
@@ -276,31 +288,35 @@ router.post(
             });
 
             await ActivityLog.create({
-    user: req.user._id,
-    action: "CREATE",
-    description: "Membuat Todo baru",
-    todo: todo._id
-});
+                user: req.user._id,
+                action: "CREATE",
+                description: "Membuat Todo baru",
+                todo: todo._id
+            });
 
             res.status(201).json({
                 success: true,
                 message: "Todo berhasil dibuat.",
                 data: todo
             });
+
         } catch (error) {
             next(error);
         }
     }
 );
 
+
 // ==========================================
 // PUT /todos/:id
 // Memperbarui Todo milik pengguna
 // ==========================================
+
 /**
  * @swagger
  * /todos/{id}:
  *   put:
+ *     operationId: updateTodo
  *     summary: Memperbarui Todo
  *     tags: [Todo]
  *     security:
@@ -342,6 +358,7 @@ router.post(
  *       404:
  *         description: Todo tidak ditemukan
  */
+
 router.put(
     "/:id",
     protect,
@@ -390,31 +407,37 @@ router.put(
                     message: "Todo tidak ditemukan."
                 });
             }
+
             await ActivityLog.create({
-    user: req.user._id,
-    action: "UPDATE",
-    description: "Memperbarui Todo",
-    todo: todo._id
-});
+                user: req.user._id,
+                action: "UPDATE",
+                description: "Memperbarui Todo",
+                todo: todo._id
+            });
+
             res.status(200).json({
                 success: true,
                 message: "Todo berhasil diperbarui.",
                 data: todo
             });
+
         } catch (error) {
             next(error);
         }
     }
 );
 
+
 // ==========================================
 // DELETE /todos/:id
 // Menghapus Todo milik pengguna
 // ==========================================
+
 /**
  * @swagger
  * /todos/{id}:
  *   delete:
+ *     operationId: deleteTodo
  *     summary: Menghapus Todo
  *     tags: [Todo]
  *     security:
@@ -436,6 +459,7 @@ router.put(
  *       404:
  *         description: Todo tidak ditemukan
  */
+
 router.delete(
     "/:id",
     protect,
@@ -453,20 +477,24 @@ router.delete(
                     message: "Todo tidak ditemukan."
                 });
             }
+
             await ActivityLog.create({
-    user: req.user._id,
-    action: "DELETE",
-    description: "Menghapus Todo",
-    todo: todo._id
-});
+                user: req.user._id,
+                action: "DELETE",
+                description: "Menghapus Todo",
+                todo: todo._id
+            });
+
             res.status(200).json({
                 success: true,
                 message: "Todo berhasil dihapus."
             });
+
         } catch (error) {
             next(error);
         }
     }
 );
+
 
 module.exports = router;
