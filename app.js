@@ -314,20 +314,18 @@ app.use("/api/activity-logs", activityLogRoutes);
 
 
 // Dokumentasi Swagger
-// ==========================================
-// DOKUMENTASI SWAGGER
-// ==========================================
-
+// Dokumentasi Swagger
 const swaggerOptions = {
-    customCss: ".swagger-ui .topbar { display: none }",
-    customSiteTitle: "API Documentation"
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "API Documentation",
+  customJs: [
+    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.min.js"
+  ],
+  customCssUrl: [
+    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css"
+  ]
 };
-
-app.use(
-    "/api-docs",
-    swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec, swaggerOptions)
-);
 
 
 // ==========================================
