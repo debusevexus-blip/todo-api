@@ -319,7 +319,15 @@ app.use("/api/activity-logs", activityLogRoutes);
 app.use(
     "/api-docs",
     swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec)
+    swaggerUi.setup(swaggerSpec, {
+        customCssUrl:
+            "https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css",
+
+        customJs: [
+            "https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js",
+            "https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-standalone-preset.js"
+        ]
+    })
 );
 // ==========================================
 // NOT FOUND DAN ERROR HANDLER
