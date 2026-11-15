@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const swaggerUiDist = require("swagger-ui-dist");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 
@@ -314,11 +315,19 @@ app.use("/api/activity-logs", activityLogRoutes);
 
 
 // Dokumentasi Swagger
+// Menyajikan file JavaScript dan CSS Swagger
+app.use(
+    "/api-docs",
+    express.static(swaggerUiDist.getAbsoluteFSPath(), {
+        index: false
+    })
+);
+
 // Dokumentasi Swagger
 app.use(
-  "/api-docs",
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec)
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec)
 );
 // ==========================================
 // NOT FOUND DAN ERROR HANDLER
