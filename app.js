@@ -1,6 +1,5 @@
 const express = require("express");
 const app = express();
-
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./config/swagger");
 
@@ -11,30 +10,32 @@ const errorHandler = require("./middleware/errorHandler");
 const protect = require("./middleware/protect");
 const restrictTo = require("./middleware/restrictTo");
 
-// Routes
+// Route Activity Log
 const activityLogRoutes = require("./ruotes/activityLogRoutes");
-const todoRoutes = require("./ruotes/todoRuotes");
-const categoryRoutes = require("./ruotes/categoryRuotes");
-const statsRoutes = require("./ruotes/statsRuotes");
+
+// Custom error dan catchAsync
+const AppError = require("./utils/AppError");
+const catchAsync = require("./utils/CatchAsynch");
 
 // Models
 const User = require("./models/user");
 const Todo = require("./models/Todo");
 const Category = require("./models/Category");
 
-// Utilities
-const AppError = require("./utils/AppError");
-const catchAsync = require("./utils/CatchAsynch");
-
 // Library
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-// Validator
+// Validator Register dan Login
 const {
     registerValidator,
     loginValidator
 } = require("./validator/authValidator");
+
+// Routes Todo dan Category
+const todoRoutes = require("./ruotes/todoRuotes");
+const categoryRoutes = require("./ruotes/categoryRuotes");
+const statsRoutes = require("./ruotes/statsRuotes");
 
 // ==========================================
 // MIDDLEWARE
@@ -47,7 +48,7 @@ app.use(logger);
 // ENDPOINT UTAMA
 // ==========================================
 
-app.get("/", function (req, res) {
+app.get("/", (req, res) => {
     res.status(200).json({
         success: true,
         message: "API Todo berjalan"
@@ -60,7 +61,7 @@ app.get("/", function (req, res) {
 
 app.get(
     "/api/todo/:id",
-    catchAsync(async function (req, res) {
+    catchAsync(async (req, res) => {
         const todo = null;
 
         if (!todo) {
@@ -78,7 +79,7 @@ app.get(
 // MENGUJI ERROR HANDLER
 // ==========================================
 
-app.get("/error", function (req, res, next) {
+app.get("/error", (req, res, next) => {
     next(new Error("Contoh kesalahan server"));
 });
 
@@ -86,7 +87,7 @@ app.get("/error", function (req, res, next) {
 // ENDPOINT PENGUJIAN USER
 // ==========================================
 
-app.post("/user", async function (req, res, next) {
+app.post("/user", async (req, res, next) => {
     try {
         const user = await User.create({
             name: "ujang",
@@ -112,7 +113,7 @@ app.post("/user", async function (req, res, next) {
 // MENGUJI RELASI USER, CATEGORY, TODO
 // ==========================================
 
-app.get("/test-models", async function (req, res, next) {
+app.get("/test-models", async (req, res, next) => {
     try {
         const user = await User.create({
             name: "juned",
@@ -142,7 +143,6 @@ app.get("/test-models", async function (req, res, next) {
             message: "Pengujian relasi berhasil",
             data: hasil
         });
-
     } catch (error) {
         next(error);
     }
@@ -152,7 +152,7 @@ app.get("/test-models", async function (req, res, next) {
 // ENDPOINT PENGUJIAN SEDERHANA
 // ==========================================
 
-app.get("/cek", function (req, res) {
+app.get("/cek", (req, res) => {
     res.status(200).json({
         success: true,
         message: "Endpoint berhasil dijalankan!"
@@ -163,7 +163,7 @@ app.get("/cek", function (req, res) {
 // REGISTER
 // ==========================================
 
-app.post("/register", registerValidator, async function (req, res, next) {
+app.post("/register", registerValidator, async (req, res, next) => {
     try {
         const { name, email, password } = req.body;
 
@@ -205,7 +205,7 @@ app.post("/register", registerValidator, async function (req, res, next) {
 // LOGIN
 // ==========================================
 
-app.post("/login", loginValidator, async function (req, res, next) {
+app.post("/login", loginValidator, async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
@@ -252,7 +252,7 @@ app.post("/login", loginValidator, async function (req, res, next) {
         res.status(200).json({
             success: true,
             message: "Login berhasil",
-            token: token,
+            token,
             data: {
                 id: user._id,
                 name: user.name,
@@ -269,7 +269,7 @@ app.post("/login", loginValidator, async function (req, res, next) {
 // PROFILE
 // ==========================================
 
-app.get("/profile", protect, function (req, res) {
+app.get("/profile", protect, (req, res) => {
     res.status(200).json({
         success: true,
         message: "Autentikasi berhasil",
@@ -281,7 +281,7 @@ app.get("/profile", protect, function (req, res) {
 // ENDPOINT ADMIN
 // ==========================================
 
-app.get("/admin", protect, restrictTo("admin"), function (req, res) {
+app.get("/admin", protect, restrictTo("admin"), (req, res) => {
     res.status(200).json({
         success: true,
         message: "Selamat datang, Admin!"
@@ -312,19 +312,26 @@ app.use("/api/stats", statsRoutes);
 
 app.use("/api/activity-logs", activityLogRoutes);
 
-// ==========================================
-// DOKUMENTASI SWAGGER
-// ==========================================
 
+// Dokumentasi Swagger
+// Dokumentasi Swagger
 const swaggerOptions = {
-    customCss: ".swagger-ui .topbar { display: none }",
-    customSiteTitle: "API Todo Documentation"
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "API Documentation",
+  customJs: [
+    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.min.js"
+  ],
+  customCssUrl: [
+    "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css"
+  ]
 };
+
 
 app.use(
     "/api-docs",
     swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec, swaggerOptions)
+    swaggerUi.setup(swaggerSpec)
 );
 
 // ==========================================
