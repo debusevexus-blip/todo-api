@@ -321,7 +321,7 @@ app.use("/api/activity-logs", activityLogRoutes);
 app.use(
     "/api-docs",
     swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec, swaggerOptions)
+    swaggerUi.setup(swaggerSpec, { customCssUrl: CSS_URL, customJs: JS_URL })
 );
 
 
