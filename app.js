@@ -314,11 +314,9 @@ app.use("/api/activity-logs", activityLogRoutes);
 
 
 // Dokumentasi Swagger
-// Dokumentasi Swagger
-const swaggerOptions = {
-    customCss: ".swagger-ui .topbar { display: none }",
-    customSiteTitle: "Todo API Documentation"
-};
+<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.min.js"></script>;
+<script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.min.js"></script>;
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css"></link>
 
 app.use(
     "/api-docs",
