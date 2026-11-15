@@ -1,11 +1,5 @@
 const swaggerJsdoc = require("swagger-jsdoc");
 const path = require("path");
-const fs = require("fs");
-
-const routePath = path.join(__dirname, "../ruotes/todoRuotes.js");
-
-console.log("Lokasi file:", routePath);
-console.log("File ditemukan:", fs.existsSync(routePath));
 
 const options = {
     definition: {
@@ -18,11 +12,10 @@ const options = {
         },
 
         servers: [
-        
-          {
-        url: '/',
-        description: "Default"
-    },
+            {
+                url: "/",
+                description: "Default server"
+            }
         ],
 
         components: {
@@ -36,12 +29,13 @@ const options = {
         }
     },
 
-    apis: ['./ruotes/*.js', './ruotes/*.js'],
+    apis: [
+        path.join(__dirname, "../ruotes/*.js")
+    ]
 };
 
 const swaggerSpec = swaggerJsdoc(options);
 
-// Memeriksa apakah dokumentasi endpoint berhasil dibaca
 console.log(
     "Swagger membaca endpoint:",
     Object.keys(swaggerSpec.paths || {})
