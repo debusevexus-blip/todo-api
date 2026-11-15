@@ -315,13 +315,6 @@ app.use("/api/activity-logs", activityLogRoutes);
 
 // Dokumentasi Swagger
 // Menyajikan file JavaScript dan CSS Swagger
-app.use(
-    "/api-docs",
-    express.static(swaggerUiDist.getAbsoluteFSPath(), {
-        index: false
-    })
-);
-
 // Dokumentasi Swagger
 app.use(
     "/api-docs",
