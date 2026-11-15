@@ -313,21 +313,30 @@ app.use("/api/stats", statsRoutes);
 app.use("/api/activity-logs", activityLogRoutes);
 
 
-// Dokumentasi Swagger
-// Menyajikan file JavaScript dan CSS Swagger
+// Arahkan file Swagger UI ke CDN
+app.get("/api-docs/swagger-ui-bundle.js", (req, res) => {
+    res.redirect(
+        "https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"
+    );
+});
+
+app.get("/api-docs/swagger-ui-standalone-preset.js", (req, res) => {
+    res.redirect(
+        "https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-standalone-preset.js"
+    );
+});
+
+app.get("/api-docs/swagger-ui.css", (req, res) => {
+    res.redirect(
+        "https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css"
+    );
+});
+
 // Dokumentasi Swagger
 app.use(
     "/api-docs",
     swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec, {
-        customCssUrl:
-            "https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css",
-
-        customJs: [
-            "https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js",
-            "https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-standalone-preset.js"
-        ]
-    })
+    swaggerUi.setup(swaggerSpec)
 );
 // ==========================================
 // NOT FOUND DAN ERROR HANDLER
