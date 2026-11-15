@@ -322,10 +322,21 @@ app.use("/api/activity-logs", activityLogRoutes);
 // ==========================================
 // DOKUMENTASI SWAGGER
 // ==========================================
+// ==========================================
+// DOKUMENTASI SWAGGER MENGGUNAKAN CDN
+// ==========================================
+const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css";
+const JS_FILES = [
+  "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js"
+];
+
 app.use(
   "/api-docs",
   swaggerUi.serve,
   swaggerUi.setup(swaggerSpec, {
+    customCssUrl: CSS_URL,
+    customJs: JS_FILES,
     customCss: '.swagger-ui .topbar { display: none }',
     customSiteTitle: "API Documentation"
   })
