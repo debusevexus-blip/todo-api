@@ -324,7 +324,7 @@ const JS_URL = [
 app.use(
   "/api-docs",
   swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, { customCssUrl: CSS_URL, customJs: JS_URL })
+  swaggerUi.setup(swaggerSpec)
 );
 // ==========================================
 // NOT FOUND DAN ERROR HANDLER
