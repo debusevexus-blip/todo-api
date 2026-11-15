@@ -315,12 +315,7 @@ app.use("/api/activity-logs", activityLogRoutes);
 
 // Dokumentasi Swagger
 // Dokumentasi Swagger
-// ==========================================
-// ROUTE ACTIVITY LOG
-// ==========================================
-
-app.use("/api/activity-logs", activityLogRoutes);
-
+// ======================================
 // ==========================================
 // DOKUMENTASI SWAGGER (Pindahkan ke sini, sebelum notFound)
 // ==========================================
