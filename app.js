@@ -325,10 +325,13 @@ app.use("/api/activity-logs", activityLogRoutes);
 // ==========================================
 // DOKUMENTASI SWAGGER MENGGUNAKAN CDN
 // ==========================================
-const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css";
+// ==========================================
+// DOKUMENTASI SWAGGER MENGGUNAKAN CDN STABIL
+// ==========================================
+const CSS_URL = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.0.0/swagger-ui.min.css";
 const JS_FILES = [
-  "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.js",
-  "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.js"
+  "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.0.0/swagger-ui-bundle.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.0.0/swagger-ui-standalone-preset.js"
 ];
 
 app.use(
