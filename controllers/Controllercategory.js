@@ -144,11 +144,16 @@ const updateCategory = async (req, res, next) => {
                 _id: req.params.id,
                 user: req.user._id
             },
-            req.body,
-            {
-                new: true,
-                runValidators: true
-            }
+           {
+    $set: {
+        ...req.body,
+        updated_by: req.user._id
+    }
+},
+{
+    new: true,
+    runValidators: true
+}
         );
 
         if (!category) {
