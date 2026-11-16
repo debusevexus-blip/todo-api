@@ -1,3 +1,91 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: Autentikasi pengguna
+ */
+
+/**
+ * @swagger
+ * /register:
+ *   post:
+ *     summary: Mendaftarkan pengguna baru
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Budi
+ *               email:
+ *                 type: string
+ *                 example: budi@gmail.com
+ *               password:
+ *                 type: string
+ *                 example: password123
+ *     responses:
+ *       201:
+ *         description: Register berhasil
+ *       400:
+ *         description: Data tidak valid
+ *       409:
+ *         description: Email sudah terdaftar
+ */
+
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Login pengguna
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: budi@gmail.com
+ *               password:
+ *                 type: string
+ *                 example: password123
+ *     responses:
+ *       200:
+ *         description: Login berhasil dan menghasilkan JWT Token
+ *       400:
+ *         description: Data tidak valid
+ *       401:
+ *         description: Email atau password salah
+ */
+
+/**
+ * @swagger
+ * /profile:
+ *   get:
+ *     summary: Mengambil profil pengguna yang sedang login
+ *     tags: [Auth]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Autentikasi berhasil
+ *       401:
+ *         description: Token tidak ditemukan atau tidak valid
+ */
+
 const express = require("express");
 const app = express();
 const swaggerUi = require("swagger-ui-express");
@@ -124,7 +212,9 @@ app.get("/test-models", async (req, res, next) => {
         const category = await Category.create({
             name: "Pendidikan",
             description: "Kategori belajar",
-            user: user._id
+            user: user._id,
+            created_by: user._id,
+            updated_by: user._id
         });
 
         const todo = await Todo.create({
@@ -310,7 +400,7 @@ app.use("/api/stats", statsRoutes);
 // ROUTE ACTIVITY LOG
 // ==========================================
 
-app.use("/api/activity-logs", activityLogRoutes);
+app.use("/activity-logs", activityLogRoutes);
 
 
 // Arahkan file Swagger UI ke CDN

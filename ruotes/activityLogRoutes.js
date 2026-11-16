@@ -1,3 +1,27 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Activity Logs
+ *   description: Dokumentasi riwayat aktivitas pengguna
+ */
+
+/**
+ * @swagger
+ * /activity-logs:
+ *   get:
+ *     summary: Mengambil seluruh riwayat aktivitas pengguna
+ *     description: Menampilkan riwayat aktivitas CREATE, UPDATE, dan DELETE.
+ *     tags: [Activity Logs]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Berhasil mengambil riwayat aktivitas
+ *       401:
+ *         description: Token tidak ditemukan atau tidak valid
+ *       500:
+ *         description: Kesalahan server
+ */
 const express = require("express");
 const router = express.Router();
 

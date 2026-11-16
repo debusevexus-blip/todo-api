@@ -1,29 +1,34 @@
 const Category = require("../models/Category");
 
+// ==========================================
 // CREATE CATEGORY
+// ==========================================
 const createCategory = async (req, res, next) => {
     try {
-        const { name, description } = req.body;
-
         const category = await Category.create({
-    name,
-    description,
-    user: req.user._id,
-    created_by: req.user._id,
-    updated_by: req.user._id
-});
+            name: req.body.name,
+            description: req.body.description || "",
+            user: req.user._id,
+            created_by: req.user._id,
+            updated_by: req.user._id,
+            archived: false
+        });
 
         res.status(201).json({
             success: true,
             message: "Category berhasil dibuat",
             data: category
         });
+
     } catch (error) {
         next(error);
     }
 };
 
-// GET ALL CATEGORY + FILTERING, SEARCH, SORTING, PAGINATION
+// ==========================================
+// GET ALL CATEGORY
+// FILTERING, SEARCH, SORTING, PAGINATION
+// ==========================================
 const getCategories = async (req, res, next) => {
     try {
         const {
@@ -34,7 +39,7 @@ const getCategories = async (req, res, next) => {
             limit = 10
         } = req.query;
 
-        // FILTERING BERDASARKAN USER
+        // FILTERING
         const filter = {
             user: req.user._id,
             archived: false
@@ -70,7 +75,7 @@ const getCategories = async (req, res, next) => {
             });
         }
 
-        // PAGINATION
+        // VALIDASI PAGINATION
         const pageNumber = Number(page);
         const limitNumber = Number(limit);
 
@@ -89,8 +94,12 @@ const getCategories = async (req, res, next) => {
 
         const skip = (pageNumber - 1) * limitNumber;
 
+        // QUERY DATABASE
         const [categories, total] = await Promise.all([
             Category.find(filter)
+                .populate("user", "name email")
+                .populate("created_by", "name email")
+                .populate("updated_by", "name email")
                 .sort(sortOptions[sort])
                 .skip(skip)
                 .limit(limitNumber),
@@ -112,14 +121,19 @@ const getCategories = async (req, res, next) => {
     }
 };
 
+// ==========================================
 // GET CATEGORY BY ID
+// ==========================================
 const getCategoryById = async (req, res, next) => {
     try {
         const category = await Category.findOne({
             _id: req.params.id,
             user: req.user._id,
-            archived: false,
-        });
+            archived: false
+        })
+            .populate("user", "name email")
+            .populate("created_by", "name email")
+            .populate("updated_by", "name email");
 
         if (!category) {
             return res.status(404).json({
@@ -138,7 +152,9 @@ const getCategoryById = async (req, res, next) => {
     }
 };
 
+// ==========================================
 // UPDATE CATEGORY
+// ==========================================
 const updateCategory = async (req, res, next) => {
     try {
         const category = await Category.findOneAndUpdate(
@@ -147,16 +163,17 @@ const updateCategory = async (req, res, next) => {
                 user: req.user._id,
                 archived: false
             },
-           {
-    $set: {
-        ...req.body,
-        updated_by: req.user._id
-    }
-},
-{
-    new: true,
-    runValidators: true
-}
+            {
+                $set: {
+                    ...req.body,
+                    updated_by: req.user._id
+                }
+            },
+            {
+                new: true,
+                runValidators: true,
+                strict: true
+            }
         );
 
         if (!category) {
@@ -177,7 +194,9 @@ const updateCategory = async (req, res, next) => {
     }
 };
 
-// DELETE CATEGORY
+// ==========================================
+// DELETE CATEGORY (SOFT DELETE)
+// ==========================================
 const deleteCategory = async (req, res, next) => {
     try {
         const category = await Category.findOneAndUpdate(
@@ -195,7 +214,10 @@ const deleteCategory = async (req, res, next) => {
             {
                 new: true
             }
-        );
+        )
+            .populate("user", "name email")
+            .populate("created_by", "name email")
+            .populate("updated_by", "name email");
 
         if (!category) {
             return res.status(404).json({
@@ -215,7 +237,9 @@ const deleteCategory = async (req, res, next) => {
     }
 };
 
+// ==========================================
 // EXPORT CONTROLLER
+// ==========================================
 module.exports = {
     createCategory,
     getCategories,

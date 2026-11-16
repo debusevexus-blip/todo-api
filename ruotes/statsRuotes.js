@@ -1,3 +1,30 @@
+/**
+ * @swagger
+ * tags:
+ *   name: Stats
+ *   description: Statistik pengelolaan Todo
+ */
+
+/**
+ * @swagger
+ * /api/stats/summary:
+ *   get:
+ *     summary: Mengambil statistik Todo
+ *     description: Menampilkan jumlah seluruh Todo, Todo selesai, Todo belum selesai, jumlah kategori, dan persentase penyelesaian.
+ *     tags: [Stats]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     responses:
+ *       200:
+ *         description: Berhasil mengambil statistik Todo
+ *       401:
+ *         description: API Key tidak ditemukan
+ *       403:
+ *         description: API Key tidak valid
+ *       500:
+ *         description: Kesalahan server
+ */
+
 const express = require("express");
 const router = express.Router();
 
