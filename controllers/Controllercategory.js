@@ -1,7 +1,6 @@
 const Category = require("../models/Category");
 
 // CREATE CATEGORY
-// CREATE CATEGORY
 const createCategory = async (req, res, next) => {
     try {
         const { name, description } = req.body;
@@ -33,8 +32,10 @@ const getCategories = async (req, res, next) => {
             limit = 10
         } = req.query;
 
-        // FILTERING
-        const filter = {};
+        // FILTERING BERDASARKAN USER
+        const filter = {
+            user: req.user._id
+        };
 
         if (name) {
             filter.name = {
@@ -90,6 +91,7 @@ const getCategories = async (req, res, next) => {
                 .sort(sortOptions[sort])
                 .skip(skip)
                 .limit(limitNumber),
+
             Category.countDocuments(filter)
         ]);
 
@@ -101,6 +103,7 @@ const getCategories = async (req, res, next) => {
             totalPages: Math.ceil(total / limitNumber),
             data: categories
         });
+
     } catch (error) {
         next(error);
     }
@@ -109,7 +112,10 @@ const getCategories = async (req, res, next) => {
 // GET CATEGORY BY ID
 const getCategoryById = async (req, res, next) => {
     try {
-        const category = await Category.findById(req.params.id);
+        const category = await Category.findOne({
+            _id: req.params.id,
+            user: req.user._id
+        });
 
         if (!category) {
             return res.status(404).json({
@@ -122,6 +128,7 @@ const getCategoryById = async (req, res, next) => {
             success: true,
             data: category
         });
+
     } catch (error) {
         next(error);
     }
@@ -130,8 +137,11 @@ const getCategoryById = async (req, res, next) => {
 // UPDATE CATEGORY
 const updateCategory = async (req, res, next) => {
     try {
-        const category = await Category.findByIdAndUpdate(
-            req.params.id,
+        const category = await Category.findOneAndUpdate(
+            {
+                _id: req.params.id,
+                user: req.user._id
+            },
             req.body,
             {
                 new: true,
@@ -151,6 +161,7 @@ const updateCategory = async (req, res, next) => {
             message: "Category berhasil diperbarui",
             data: category
         });
+
     } catch (error) {
         next(error);
     }
@@ -159,7 +170,10 @@ const updateCategory = async (req, res, next) => {
 // DELETE CATEGORY
 const deleteCategory = async (req, res, next) => {
     try {
-        const category = await Category.findByIdAndDelete(req.params.id);
+        const category = await Category.findOneAndDelete({
+            _id: req.params.id,
+            user: req.user._id
+        });
 
         if (!category) {
             return res.status(404).json({
@@ -172,11 +186,13 @@ const deleteCategory = async (req, res, next) => {
             success: true,
             message: "Category berhasil dihapus"
         });
+
     } catch (error) {
         next(error);
     }
 };
 
+// EXPORT CONTROLLER
 module.exports = {
     createCategory,
     getCategories,
