@@ -6,10 +6,12 @@ const createCategory = async (req, res, next) => {
         const { name, description } = req.body;
 
         const category = await Category.create({
-            name,
-            description,
-            user: req.user._id
-        });
+    name,
+    description,
+    user: req.user._id,
+    created_by: req.user._id,
+    updated_by: req.user._id
+});
 
         res.status(201).json({
             success: true,
