@@ -36,7 +36,8 @@ const getCategories = async (req, res, next) => {
 
         // FILTERING BERDASARKAN USER
         const filter = {
-            user: req.user._id
+            user: req.user._id,
+            archived: false
         };
 
         if (name) {
@@ -116,7 +117,8 @@ const getCategoryById = async (req, res, next) => {
     try {
         const category = await Category.findOne({
             _id: req.params.id,
-            user: req.user._id
+            user: req.user._id,
+            archived: false,
         });
 
         if (!category) {
@@ -142,7 +144,8 @@ const updateCategory = async (req, res, next) => {
         const category = await Category.findOneAndUpdate(
             {
                 _id: req.params.id,
-                user: req.user._id
+                user: req.user._id,
+                archived: false
             },
            {
     $set: {
@@ -177,10 +180,22 @@ const updateCategory = async (req, res, next) => {
 // DELETE CATEGORY
 const deleteCategory = async (req, res, next) => {
     try {
-        const category = await Category.findOneAndDelete({
-            _id: req.params.id,
-            user: req.user._id
-        });
+        const category = await Category.findOneAndUpdate(
+            {
+                _id: req.params.id,
+                user: req.user._id,
+                archived: false
+            },
+            {
+                $set: {
+                    archived: true,
+                    updated_by: req.user._id
+                }
+            },
+            {
+                new: true
+            }
+        );
 
         if (!category) {
             return res.status(404).json({
@@ -191,7 +206,8 @@ const deleteCategory = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            message: "Category berhasil dihapus"
+            message: "Category berhasil diarsipkan",
+            data: category
         });
 
     } catch (error) {

@@ -15,12 +15,13 @@ const {
 // GET /todos
 // Filtering, Search, Sorting, Pagination
 // ==========================================
+
 /**
  * @swagger
  * /todos:
  *   get:
  *     summary: Mengambil seluruh Todo pengguna
- *     description: Menampilkan daftar Todo dengan filtering, pencarian, sorting, dan pagination.
+ *     description: Menampilkan Todo dengan filtering, pencarian, sorting, dan pagination.
  *     tags: [Todo]
  *     security:
  *       - BearerAuth: []
@@ -63,19 +64,21 @@ const {
  *     responses:
  *       200:
  *         description: Berhasil mengambil daftar Todo
- *       401:
- *         description: Token tidak tersedia atau tidak valid
  *       400:
  *         description: Parameter filter tidak valid
+ *       401:
+ *         description: Token tidak tersedia atau tidak valid
  */
+
 router.get("/", protect, async (req, res, next) => {
     try {
         // 1. FILTERING
         const filter = {
-            user: req.user._id
+            user: req.user._id,
+            archived: false
         };
 
-        // Filter berdasarkan status completed
+        // Filter berdasarkan completed
         if (req.query.completed !== undefined) {
             if (!["true", "false"].includes(req.query.completed)) {
                 return res.status(400).json({
@@ -101,7 +104,6 @@ router.get("/", protect, async (req, res, next) => {
 
         // 2. SEARCH
         if (req.query.search) {
-            // Escape karakter khusus agar diperlakukan sebagai teks biasa
             const search = req.query.search.replace(
                 /[.*+?^${}()|[\]\\]/g,
                 "\\$&"
@@ -148,7 +150,9 @@ router.get("/", protect, async (req, res, next) => {
             .skip(skip)
             .limit(limit)
             .populate("user", "name email")
-            .populate("category", "name");
+            .populate("category", "name")
+            .populate("created_by", "name email")
+            .populate("updated_by", "name email");
 
         res.status(200).json({
             success: true,
@@ -160,15 +164,18 @@ router.get("/", protect, async (req, res, next) => {
             },
             data: todos
         });
+
     } catch (error) {
         next(error);
     }
 });
 
-// ====================================
-// GET /todos/:id
-// Mengambil satu Todo milik pengguna
+
 // ==========================================
+// GET /todos/:id
+// Mengambil satu Todo berdasarkan ID
+// ==========================================
+
 /**
  * @swagger
  * /todos/{id}:
@@ -194,14 +201,18 @@ router.get("/", protect, async (req, res, next) => {
  *       404:
  *         description: Todo tidak ditemukan
  */
+
 router.get("/:id", protect, todoIdValidator, async (req, res, next) => {
     try {
         const todo = await Todo.findOne({
             _id: req.params.id,
-            user: req.user._id
+            user: req.user._id,
+            archived: false
         })
             .populate("user", "name email")
-            .populate("category", "name");
+            .populate("category", "name")
+            .populate("created_by", "name email")
+            .populate("updated_by", "name email");
 
         if (!todo) {
             return res.status(404).json({
@@ -214,259 +225,12 @@ router.get("/:id", protect, todoIdValidator, async (req, res, next) => {
             success: true,
             data: todo
         });
+
     } catch (error) {
         next(error);
     }
 });
 
+
 // ==========================================
 // POST /todos
-// Membuat Todo baru
-// ==========================================
-/**
- * @swagger
- * /todos:
- *   post:
- *     summary: Membuat Todo baru
- *     tags: [Todo]
- *     security:
- *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - title
- *             properties:
- *               title:
- *                 type: string
- *                 example: Belajar Backend
- *               description:
- *                 type: string
- *                 example: Mempelajari Express dan MongoDB
- *               completed:
- *                 type: boolean
- *                 example: false
- *               category:
- *                 type: string
- *                 nullable: true
- *                 example: 65a123456789abcdef123456
- *     responses:
- *       201:
- *         description: Todo berhasil dibuat
- *       400:
- *         description: Data tidak valid
- *       401:
- *         description: Token tidak valid
- */
-router.post(
-    "/",
-    protect,
-    todoValidator,
-    async (req, res, next) => {
-        try {
-            const todo = await Todo.create({
-                title: req.body.title,
-                description: req.body.description || "",
-                completed: req.body.completed ?? false,
-                user: req.user._id,
-                category: req.body.category || null
-            });
-
-            await ActivityLog.create({
-    user: req.user._id,
-    action: "CREATE",
-    description: "Membuat Todo baru",
-    todo: todo._id
-});
-
-            res.status(201).json({
-                success: true,
-                message: "Todo berhasil dibuat.",
-                data: todo
-            });
-        } catch (error) {
-            next(error);
-        }
-    }
-);
-
-// ==========================================
-// PUT /todos/:id
-// Memperbarui Todo milik pengguna
-// ==========================================
-/**
- * @swagger
- * /todos/{id}:
- *   put:
- *     summary: Memperbarui Todo
- *     tags: [Todo]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID Todo yang akan diperbarui
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *                 example: Todo Baru
- *               description:
- *                 type: string
- *                 example: Deskripsi Todo yang diperbarui
- *               completed:
- *                 type: boolean
- *                 example: true
- *               category:
- *                 type: string
- *                 nullable: true
- *                 example: 65a123456789abcdef123456
- *     responses:
- *       200:
- *         description: Todo berhasil diperbarui
- *       400:
- *         description: Data atau ID tidak valid
- *       401:
- *         description: Tidak terautentikasi
- *       404:
- *         description: Todo tidak ditemukan
- */
-router.put(
-    "/:id",
-    protect,
-    todoIdValidator,
-    todoValidator,
-    async (req, res, next) => {
-        try {
-            const updateData = {};
-
-            // Hanya izinkan kolom berikut diperbarui
-            const allowedFields = [
-                "title",
-                "description",
-                "completed",
-                "category"
-            ];
-
-            for (const field of allowedFields) {
-                if (req.body[field] !== undefined) {
-                    updateData[field] = req.body[field];
-                }
-            }
-
-            // Konversi kategori kosong menjadi null
-            if (updateData.category === "") {
-                updateData.category = null;
-            }
-
-            const todo = await Todo.findOneAndUpdate(
-                {
-                    _id: req.params.id,
-                    user: req.user._id
-                },
-                updateData,
-                {
-                    new: true,
-                    runValidators: true
-                }
-            )
-                .populate("user", "name email")
-                .populate("category", "name");
-
-            if (!todo) {
-                return res.status(404).json({
-                    success: false,
-                    message: "Todo tidak ditemukan."
-                });
-            }
-            await ActivityLog.create({
-    user: req.user._id,
-    action: "UPDATE",
-    description: "Memperbarui Todo",
-    todo: todo._id
-});
-            res.status(200).json({
-                success: true,
-                message: "Todo berhasil diperbarui.",
-                data: todo
-            });
-        } catch (error) {
-            next(error);
-        }
-    }
-);
-
-// ==========================================
-// DELETE /todos/:id
-// Menghapus Todo milik pengguna
-// ==========================================
-/**
- * @swagger
- * /todos/{id}:
- *   delete:
- *     summary: Menghapus Todo
- *     tags: [Todo]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: ID Todo yang akan dihapus
- *     responses:
- *       200:
- *         description: Todo berhasil dihapus
- *       400:
- *         description: ID tidak valid
- *       401:
- *         description: Tidak terautentikasi
- *       404:
- *         description: Todo tidak ditemukan
- */
-router.delete(
-    "/:id",
-    protect,
-    todoIdValidator,
-    async (req, res, next) => {
-        try {
-            const todo = await Todo.findOneAndDelete({
-                _id: req.params.id,
-                user: req.user._id
-            });
-
-            if (!todo) {
-                return res.status(404).json({
-                    success: false,
-                    message: "Todo tidak ditemukan."
-                });
-            }
-            await ActivityLog.create({
-    user: req.user._id,
-    action: "DELETE",
-    description: "Menghapus Todo",
-    todo: todo._id
-});
-            res.status(200).json({
-                success: true,
-                message: "Todo berhasil dihapus."
-            });
-        } catch (error) {
-            next(error);
-        }
-    }
-);
-
-module.exports = router;
