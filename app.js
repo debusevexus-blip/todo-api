@@ -252,10 +252,20 @@ app.get("/cek", (req, res) => {
 // ==========================================
 // REGISTER
 // ==========================================
+// ==========================================
+// REGISTER
+// ==========================================
 
 app.post("/register", registerValidator, async (req, res, next) => {
     try {
         const { name, email, password } = req.body;
+
+        if (!process.env.JWT_SECRET) {
+            return res.status(500).json({
+                success: false,
+                message: "Konfigurasi JWT_SECRET belum tersedia"
+            });
+        }
 
         const emailNormalized = email.toLowerCase().trim();
 
@@ -264,7 +274,7 @@ app.post("/register", registerValidator, async (req, res, next) => {
         });
 
         if (existingUser) {
-            return res.status(422).json({
+            return res.status(409).json({
                 success: false,
                 message: "Email sudah terdaftar"
             });
@@ -276,9 +286,21 @@ app.post("/register", registerValidator, async (req, res, next) => {
             password
         });
 
+        // Membuat JWT Token
+        const token = jwt.sign(
+            {
+                id: user._id.toString()
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: process.env.JWT_EXPIRES_IN || "1d"
+            }
+        );
+
         res.status(201).json({
             success: true,
             message: "Register berhasil",
+            token,
             data: {
                 id: user._id,
                 name: user.name,

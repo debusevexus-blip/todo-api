@@ -219,4 +219,9 @@ const options = {
 
 const swaggerSpec = swaggerJsDoc(options);
 
+console.log(
+    "Swagger Schemas:",
+    Object.keys(swaggerSpec.components?.schemas || {})
+);
+
 module.exports = swaggerSpec;
