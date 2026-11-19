@@ -1,3 +1,21 @@
+const express = require("express");
+const router = express.Router();
+const mongoose = require("mongoose");
+
+const protect = require("../middleware/protect");
+const Todo = require("../models/Todo");
+const ActivityLog = require("../models/ActivityLog");
+
+const {
+    todoValidator,
+    todoUpdateValidator,
+    todoIdValidator
+} = require("../validator/todoValidator");
+
+// ==========================================
+// SWAGGER DOCUMENTATION
+// ==========================================
+
 /**
  * @swagger
  * tags:
@@ -10,7 +28,6 @@
  * /todos:
  *   get:
  *     summary: Mengambil seluruh Todo pengguna
- *     description: Menampilkan Todo dengan filtering, search, sorting, dan pagination.
  *     tags: [Todo]
  *     security:
  *       - BearerAuth: []
@@ -19,58 +36,41 @@
  *         name: search
  *         schema:
  *           type: string
- *         description: Mencari Todo berdasarkan judul
- *         example: Belajar
- *
  *       - in: query
- *         name: page
+ *         name: completed
  *         schema:
- *           type: integer
- *           default: 1
- *         description: Nomor halaman
- *
+ *           type: boolean
  *       - in: query
- *         name: limit
+ *         name: category
  *         schema:
- *           type: integer
- *           default: 10
- *         description: Jumlah data per halaman
- *
+ *           type: string
  *       - in: query
  *         name: sortBy
  *         schema:
  *           type: string
  *           enum: [title, createdAt, updatedAt, completed]
- *           default: createdAt
- *         description: Field untuk sorting
- *
  *       - in: query
  *         name: order
  *         schema:
  *           type: string
  *           enum: [asc, desc]
- *           default: desc
- *         description: Urutan data
- *
  *       - in: query
- *         name: completed
+ *         name: page
  *         schema:
- *           type: boolean
- *         description: Filter berdasarkan status Todo
- *
+ *           type: integer
+ *           default: 1
  *       - in: query
- *         name: category
+ *         name: limit
  *         schema:
- *           type: string
- *         description: Filter berdasarkan ID kategori
- *
+ *           type: integer
+ *           default: 10
  *     responses:
  *       200:
  *         description: Berhasil mengambil daftar Todo
  *       400:
- *         description: Parameter query tidak valid
+ *         description: Parameter tidak valid
  *       401:
- *         description: Token tidak ditemukan atau tidak valid
+ *         description: Token tidak valid
  *
  *   post:
  *     summary: Membuat Todo baru
@@ -91,21 +91,18 @@
  *                 example: Belajar Backend
  *               description:
  *                 type: string
- *                 example: Mempelajari Express dan MongoDB
+ *                 example: Belajar Express dan MongoDB
  *               completed:
  *                 type: boolean
  *                 example: false
  *               category:
  *                 type: string
  *                 nullable: true
- *                 example: null
  *     responses:
  *       201:
  *         description: Todo berhasil dibuat
  *       400:
- *         description: Validasi data gagal
- *       401:
- *         description: Token tidak valid
+ *         description: Validasi gagal
  *
  * /todos/{id}:
  *   get:
@@ -119,19 +116,15 @@
  *         required: true
  *         schema:
  *           type: string
- *         description: ID Todo
  *     responses:
  *       200:
- *         description: Berhasil mengambil Todo
- *       400:
- *         description: ID Todo tidak valid
- *       401:
- *         description: Token tidak valid
+ *         description: Todo ditemukan
  *       404:
  *         description: Todo tidak ditemukan
  *
  *   put:
  *     summary: Memperbarui Todo berdasarkan ID
+ *     description: Mendukung partial update, sehingga tidak semua field wajib dikirim.
  *     tags: [Todo]
  *     security:
  *       - BearerAuth: []
@@ -141,7 +134,6 @@
  *         required: true
  *         schema:
  *           type: string
- *         description: ID Todo yang akan diperbarui
  *     requestBody:
  *       required: true
  *       content:
@@ -151,29 +143,23 @@
  *             properties:
  *               title:
  *                 type: string
- *                 example: Belajar Node.js
  *               description:
  *                 type: string
- *                 example: Memperbarui materi belajar
  *               completed:
  *                 type: boolean
- *                 example: true
  *               category:
  *                 type: string
  *                 nullable: true
- *                 example: null
  *     responses:
  *       200:
  *         description: Todo berhasil diperbarui
  *       400:
- *         description: Data atau ID tidak valid
- *       401:
- *         description: Token tidak valid
+ *         description: Data tidak valid
  *       404:
  *         description: Todo tidak ditemukan
  *
  *   delete:
- *     summary: Mengarsipkan Todo berdasarkan ID
+ *     summary: Mengarsipkan Todo
  *     tags: [Todo]
  *     security:
  *       - BearerAuth: []
@@ -183,37 +169,16 @@
  *         required: true
  *         schema:
  *           type: string
- *         description: ID Todo yang akan diarsipkan
  *     responses:
  *       200:
  *         description: Todo berhasil diarsipkan
- *       401:
- *         description: Token tidak valid
  *       404:
  *         description: Todo tidak ditemukan
  */
 
-
-
-const express = require("express");
-const router = express.Router();
-const mongoose = require("mongoose");
-
-const protect = require("../middleware/protect");
-const Todo = require("../models/Todo");
-const ActivityLog = require("../models/ActivityLog");
-
-const {
-    todoValidator,
-    todoUpdateValidator,
-    todoIdValidator
-} = require("../validator/todoValidator");
-
-
 // ==========================================
-// GET /todos
 // GET ALL TODO
-// Filtering, Search, Sorting, Pagination
+// FILTERING, SEARCH, SORTING, PAGINATION
 // ==========================================
 
 router.get("/", protect, async (req, res, next) => {
@@ -260,33 +225,55 @@ router.get("/", protect, async (req, res, next) => {
             };
         }
 
-        // PAGINATION
-        // PAGINATION
-const pageRaw = req.query.page;
-const limitRaw = req.query.limit;
+        // PAGINATION VALIDATION
+        const pageRaw = req.query.page;
+        const limitRaw = req.query.limit;
 
-const page = pageRaw === undefined ? 1 : Number(pageRaw);
-const limit = limitRaw === undefined ? 10 : Number(limitRaw);
+        const page = pageRaw === undefined ? 1 : Number(pageRaw);
+        const limit = limitRaw === undefined ? 10 : Number(limitRaw);
+
+        if (
+            !Number.isInteger(page) ||
+            page < 1 ||
+            !Number.isInteger(limit) ||
+            limit < 1 ||
+            limit > 100
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Page minimal 1 dan limit harus antara 1 sampai 100."
+            });
+        }
+
+        const skip = (page - 1) * limit;
+
+        // SORTING
+     // ======================================
+// SORTING
+// ======================================
+
+const allowedSortFields = [
+    "title",
+    "createdAt",
+    "updatedAt",
+    "completed"
+];
+
+const sortBy = allowedSortFields.includes(req.query.sortBy)
+    ? req.query.sortBy
+    : "createdAt";
+
+const order = req.query.order === "asc" ? 1 : -1;
 
 if (
-    !Number.isInteger(page) ||
-    page < 1 ||
-    !Number.isInteger(limit) ||
-    limit < 1 ||
-    limit > 100
+    req.query.order !== undefined &&
+    !["asc", "desc"].includes(req.query.order)
 ) {
     return res.status(400).json({
         success: false,
-        message: "Page minimal 1 dan limit harus antara 1 sampai 100."
+        message: "Order harus asc atau desc."
     });
 }
-
-const skip = (page - 1) * limit;
-        const sortBy = allowedSortFields.includes(req.query.sortBy)
-            ? req.query.sortBy
-            : "createdAt";
-
-        const order = req.query.order === "asc" ? 1 : -1;
 
         // QUERY DATABASE
         const total = await Todo.countDocuments(filter);
@@ -316,9 +303,7 @@ const skip = (page - 1) * limit;
     }
 });
 
-
 // ==========================================
-// GET /todos/:id
 // GET TODO BY ID
 // ==========================================
 
@@ -351,9 +336,7 @@ router.get("/:id", protect, todoIdValidator, async (req, res, next) => {
     }
 });
 
-
 // ==========================================
-// POST /todos
 // CREATE TODO
 // ==========================================
 
@@ -366,7 +349,7 @@ router.post("/", protect, todoValidator, async (req, res, next) => {
             category
         } = req.body;
 
-        // Validasi kategori jika diberikan
+        // VALIDASI CATEGORY
         if (category) {
             if (!mongoose.isValidObjectId(category)) {
                 return res.status(400).json({
@@ -426,99 +409,100 @@ router.post("/", protect, todoValidator, async (req, res, next) => {
     }
 });
 
-
 // ==========================================
-// PUT /todos/:id
-// UPDATE TODO
+// UPDATE TODO (PARTIAL UPDATE)
 // ==========================================
 
-router.put("/:id", protect, todoIdValidator, todoUpdateValidator, async (req, res, next) => {
-    try {
-        const todo = await Todo.findOne({
-            _id: req.params.id,
-            user: req.user._id,
-            archived: {$ne: true}
-        });
-
-        if (!todo) {
-            return res.status(404).json({
-                success: false,
-                message: "Todo tidak ditemukan."
-            });
-        }
-
-        // Hanya field yang diizinkan
-        const allowedFields = [
-            "title",
-            "description",
-            "completed",
-            "category"
-        ];
-
-        for (const field of allowedFields) {
-            if (req.body[field] !== undefined) {
-                todo[field] = req.body[field];
-            }
-        }
-
-        // Validasi kategori
-        if (req.body.category) {
-            if (!mongoose.isValidObjectId(req.body.category)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "ID kategori tidak valid."
-                });
-            }
-
-            const categoryExists = await mongoose.model("Category").findOne({
-                _id: req.body.category,
+router.put(
+    "/:id",
+    protect,
+    todoIdValidator,
+    todoUpdateValidator,
+    async (req, res, next) => {
+        try {
+            const todo = await Todo.findOne({
+                _id: req.params.id,
                 user: req.user._id,
                 archived: false
             });
 
-            if (!categoryExists) {
+            if (!todo) {
                 return res.status(404).json({
                     success: false,
-                    message: "Category tidak ditemukan."
+                    message: "Todo tidak ditemukan."
                 });
             }
+
+            // FIELD YANG BOLEH DIUPDATE
+            const allowedFields = [
+                "title",
+                "description",
+                "completed",
+                "category"
+            ];
+
+            for (const field of allowedFields) {
+                if (req.body[field] !== undefined) {
+                    todo[field] = req.body[field];
+                }
+            }
+
+            // VALIDASI CATEGORY
+            if (req.body.category) {
+                if (!mongoose.isValidObjectId(req.body.category)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "ID kategori tidak valid."
+                    });
+                }
+
+                const categoryExists = await mongoose.model("Category").findOne({
+                    _id: req.body.category,
+                    user: req.user._id,
+                    archived: false
+                });
+
+                if (!categoryExists) {
+                    return res.status(404).json({
+                        success: false,
+                        message: "Category tidak ditemukan."
+                    });
+                }
+            }
+
+            todo.updated_by = req.user._id;
+
+            await todo.save();
+
+            // ACTIVITY LOG
+            await ActivityLog.create({
+                user: req.user._id,
+                action: "UPDATE",
+                entity: "Todo",
+                entityId: todo._id,
+                description: `Memperbarui Todo: ${todo.title}`
+            });
+
+            const updatedTodo = await Todo.findById(todo._id)
+                .populate("user", "name email")
+                .populate("category", "name")
+                .populate("created_by", "name email")
+                .populate("updated_by", "name email");
+
+            res.status(200).json({
+                success: true,
+                message: "Todo berhasil diperbarui.",
+                data: updatedTodo
+            });
+
+        } catch (error) {
+            next(error);
         }
-
-        // Update audit field
-        todo.updated_by = req.user._id;
-
-        await todo.save();
-
-        // ACTIVITY LOG
-        await ActivityLog.create({
-            user: req.user._id,
-            action: "UPDATE",
-            entity: "Todo",
-            entityId: todo._id,
-            description: `Memperbarui Todo: ${todo.title}`
-        });
-
-        const updatedTodo = await Todo.findById(todo._id)
-            .populate("user", "name email")
-            .populate("category", "name")
-            .populate("created_by", "name email")
-            .populate("updated_by", "name email");
-
-        res.status(200).json({
-            success: true,
-            message: "Todo berhasil diperbarui.",
-            data: updatedTodo
-        });
-
-    } catch (error) {
-        next(error);
     }
-});
-
+);
 
 // ==========================================
-// DELETE /todos/:id
-// SOFT DELETE TODO
+// DELETE TODO (SOFT DELETE)
 // ==========================================
 
 router.delete("/:id", protect, todoIdValidator, async (req, res, next) => {
@@ -560,6 +544,5 @@ router.delete("/:id", protect, todoIdValidator, async (req, res, next) => {
         next(error);
     }
 });
-
 
 module.exports = router;
