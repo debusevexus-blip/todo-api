@@ -4,15 +4,20 @@ const path = require("path");
 const options = {
     definition: {
         openapi: "3.0.0",
+
         info: {
             title: "Todo API",
             version: "1.0.0",
             description: "Dokumentasi REST API Todo"
         },
-       servers: [
-  { url: "/", description: "Current Server (Auto Detect / Vercel)" },
-  { url: "http://localhost:3000", description: "Local development server" },
-],
+
+        servers: [
+            {
+                url: "/",
+                description: "Current Server (Auto Detect / Vercel)"
+            }
+        ],
+
         components: {
             securitySchemes: {
                 BearerAuth: {
@@ -20,6 +25,7 @@ const options = {
                     scheme: "bearer",
                     bearerFormat: "JWT"
                 },
+
                 ApiKeyAuth: {
                     type: "apiKey",
                     in: "header",
