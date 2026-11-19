@@ -205,6 +205,7 @@ const ActivityLog = require("../models/ActivityLog");
 
 const {
     todoValidator,
+    todoUpdateValidator,
     todoIdValidator
 } = require("../validator/todoValidator");
 
@@ -431,7 +432,7 @@ router.post("/", protect, todoValidator, async (req, res, next) => {
 // UPDATE TODO
 // ==========================================
 
-router.put("/:id", protect, todoIdValidator, todoValidator, async (req, res, next) => {
+router.put("/:id", protect, todoIdValidator, todoUpdateValidator, async (req, res, next) => {
     try {
         const todo = await Todo.findOne({
             _id: req.params.id,
