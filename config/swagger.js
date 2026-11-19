@@ -9,12 +9,10 @@ const options = {
             version: "1.0.0",
             description: "Dokumentasi REST API Todo"
         },
-        servers: [
-            {
-                url: "http://localhost:3000",
-                description: "Local Server"
-            }
-        ],
+       servers: [
+  { url: "/", description: "Current Server (Auto Detect / Vercel)" },
+  { url: "http://localhost:3000", description: "Local development server" },
+],
         components: {
             securitySchemes: {
                 BearerAuth: {
