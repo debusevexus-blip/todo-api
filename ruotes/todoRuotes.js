@@ -260,26 +260,27 @@ router.get("/", protect, async (req, res, next) => {
         }
 
         // PAGINATION
-        const page = Math.max(
-            1,
-            parseInt(req.query.page, 10) || 1
-        );
+        // PAGINATION
+const pageRaw = req.query.page;
+const limitRaw = req.query.limit;
 
-        const limit = Math.min(
-            100,
-            Math.max(1, parseInt(req.query.limit, 10) || 10)
-        );
+const page = pageRaw === undefined ? 1 : Number(pageRaw);
+const limit = limitRaw === undefined ? 10 : Number(limitRaw);
 
-        const skip = (page - 1) * limit;
+if (
+    !Number.isInteger(page) ||
+    page < 1 ||
+    !Number.isInteger(limit) ||
+    limit < 1 ||
+    limit > 100
+) {
+    return res.status(400).json({
+        success: false,
+        message: "Page minimal 1 dan limit harus antara 1 sampai 100."
+    });
+}
 
-        // SORTING
-        const allowedSortFields = [
-            "title",
-            "createdAt",
-            "updatedAt",
-            "completed"
-        ];
-
+const skip = (page - 1) * limit;
         const sortBy = allowedSortFields.includes(req.query.sortBy)
             ? req.query.sortBy
             : "createdAt";
